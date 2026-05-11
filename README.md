@@ -32,6 +32,6 @@ Every detection rule is written from scratch, mapped to MITRE ATT&CK, and verifi
 
 ## About
 
-Built by Aakash as a SOC analyst portfolio project.
+Aakash Ramamoorthy - getting into cybersecurity the practical way: build a lab, simulate attacks, write detections, document the lessons. Every rule in this repo is mapped to MITRE ATT&CK and verified against simulated attacks in a self-built lab environment.
 
-GitHub: [@Aakashram1234](https://github.com/Aakashram1234)
+Reach me on [LinkedIn](https://www.linkedin.com/in/aakash-ramamoorthy) or at [aakashram588@gmail.com](mailto:aakashram588@gmail.com).
