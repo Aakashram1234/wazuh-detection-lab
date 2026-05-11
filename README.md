@@ -16,7 +16,7 @@ Every detection rule is written from scratch, mapped to MITRE ATT&CK, and verifi
 
 | ATT&CK ID | Technique | Status |
 |---|---|---|
-| T1059.001 | PowerShell Encoded Command | In Progress |
+| T1059.001 | PowerShell Encoded Command | [Complete ✓](./detections/T1059.001-powershell-encoded/) |
 | T1003.001 | LSASS Memory Access | Planned |
 | T1110 | Brute Force (Windows logon) | Planned |
 | T1547.001 | Registry Run Key Persistence | Planned |

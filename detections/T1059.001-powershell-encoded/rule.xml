@@ -1,0 +1,24 @@
+<!--
+Rule 100200 — PowerShell Encoded Command with Evasion Flags
+MITRE ATT&CK: T1059.001 (PowerShell), T1027 (Obfuscated Files or Information)
+
+This rule chains off Wazuh built-in rule 92057 (which detects base64-encoded
+PowerShell execution) and escalates to level 14 when the command line also
+contains common evasion flags such as -WindowStyle Hidden, -NoProfile,
+-NonInteractive, or -ExecutionPolicy Bypass.
+
+Deploy: append inside the <group> wrapper in
+/var/ossec/etc/rules/local_rules.xml on the manager, then restart
+wazuh-manager. See README.md for the full discovery → refactor → re-test
+narrative.
+-->
+<rule id="100200" level="14">
+  <if_sid>92057</if_sid>
+  <field name="win.eventdata.commandLine" type="pcre2">(?i)(-windowstyle\s+hidden|-w\s+hidden|-nop\b|-noprofile\b|-noni\b|-noninteractive\b|-ep\s+bypass|-executionpolicy\s+bypass)</field>
+  <description>High-confidence: Encoded PowerShell with evasion flags (T1059.001 + T1027)</description>
+  <mitre>
+    <id>T1059.001</id>
+    <id>T1027</id>
+  </mitre>
+  <group>powershell,attack,T1059,T1027,defense_evasion,</group>
+</rule>
