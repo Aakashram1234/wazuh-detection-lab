@@ -1,0 +1,28 @@
+<!--
+Rule 100201 — Registry Run Key Persistence with Suspicious Path or Script Interpreter
+MITRE ATT&CK: T1547.001 (Registry Run Keys / Startup Folder), T1059 (Command and Scripting Interpreter)
+
+This rule chains off Wazuh built-in rule 92302 (which detects command-line
+Run key writes at level 6) and escalates to level 14 when the registry value
+points to a suspicious location (\Temp\, \AppData\, \Users\Public\,
+\ProgramData\, \Downloads\) or invokes a scripting interpreter directly
+(powershell, cmd.exe, cscript, wscript, mshta, rundll32, regsvr32).
+
+Note on backslashes: Wazuh's windows_eventchannel decoder escapes backslashes
+once before storing eventdata fields, so the regex must match double backslashes
+to detect Windows path separators. Each \\\\ in the pcre2 pattern matches \\
+in the stored field. See README.md for the full discovery narrative.
+
+Deploy: append inside the <group> wrapper in
+/var/ossec/etc/rules/local_rules.xml on the manager, then restart wazuh-manager.
+-->
+<rule id="100201" level="14">
+  <if_sid>92302</if_sid>
+  <field name="win.eventdata.details" type="pcre2">(?i)(\\\\Temp\\\\|\\\\AppData\\\\|\\\\Users\\\\Public\\\\|\\\\ProgramData\\\\|\\\\Downloads\\\\|powershell|cmd\.exe|cscript|wscript|mshta|rundll32|regsvr32)</field>
+  <description>High-confidence: Run Key persistence pointing to suspicious location or script interpreter (T1547.001 + T1059)</description>
+  <mitre>
+    <id>T1547.001</id>
+    <id>T1059</id>
+  </mitre>
+  <group>persistence,attack,T1547,T1059,registry,defense_evasion,</group>
+</rule>
