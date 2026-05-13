@@ -1,0 +1,37 @@
+<!--
+  Sysmon ProcessAccess configuration patch for T1003.001 LSASS Memory Access detection.
+
+  Context:     SwiftOnSecurity's sysmon-config (master, schema 4.50) ships with the
+               ProcessAccess RuleGroup intentionally empty due to system-load concerns
+               (their explicit comment: "Can cause high system load, disabled by default").
+               An empty include block means NO ProcessAccess events are logged.
+               This is why Wazuh built-in rule 92900 (T1003.001) never fired in this lab
+               despite Sysmon being correctly installed and running.
+
+  This patch:  Adds a minimal ProcessAccess RuleGroup that:
+               - Logs all access to lsass.exe (TargetImage include)
+               - Tags events with Sysmon RuleName "T1003.001,credential_access" for triage
+               - Excludes known-legitimate accessors to manage event volume
+
+  Application: Merge this RuleGroup into your sysmon configuration XML, replacing the
+               empty SwiftOnSecurity ProcessAccess section (search for the
+               "ProcessAccessConfig" comment block in their config).
+               Apply with: Sysmon64.exe -c <path-to-config.xml>
+-->
+
+<RuleGroup name="" groupRelation="or">
+  <ProcessAccess onmatch="include">
+    <!--Detection: T1003.001 OS Credential Dumping: LSASS Memory-->
+    <TargetImage name="T1003.001,credential_access" condition="image">lsass.exe</TargetImage>
+  </ProcessAccess>
+  <ProcessAccess onmatch="exclude">
+    <!--Filter out known-legitimate lsass accessors to control event volume-->
+    <SourceImage condition="end with">\MsMpEng.exe</SourceImage>
+    <SourceImage condition="end with">\MsSense.exe</SourceImage>
+    <SourceImage condition="end with">\csrss.exe</SourceImage>
+    <SourceImage condition="end with">\wininit.exe</SourceImage>
+    <SourceImage condition="end with">\services.exe</SourceImage>
+    <SourceImage condition="end with">\TrustedInstaller.exe</SourceImage>
+    <SourceImage condition="end with">\SearchIndexer.exe</SourceImage>
+  </ProcessAccess>
+</RuleGroup>

@@ -1,0 +1,31 @@
+<!--
+  Wazuh custom rule: T1003.001 LSASS Memory Access (modern dumping masks)
+
+  Rule ID:    100202
+  Level:      14
+  MITRE:      T1003.001 (OS Credential Dumping: LSASS Memory)
+  Purpose:    Fill the access-mask coverage gap left by Wazuh built-in rule 92900.
+              92900 only matches GrantedAccess 0x1010 (mimikatz classic) and 0x40
+              (PROCESS_DUP_HANDLE). This rule extends coverage to PROCESS_ALL_ACCESS
+              variants and modern dumping signatures, catching procdump, Task Manager's
+              "Create Dump File", comsvcs.dll MiniDump, and Cobalt Strike / SharpDump
+              access mask patterns.
+  Dependency: Requires Sysmon ProcessAccess (EID 10) instrumentation for lsass.exe.
+              See sysmon-patch.xml in this folder for the Sysmon config addition.
+-->
+
+<group name="local,sysmon,credential_access,">
+
+  <rule id="100202" level="14">
+    <if_group>sysmon_event_10</if_group>
+    <field name="win.eventdata.targetImage" type="pcre2">(?i)lsass\.exe</field>
+    <field name="win.eventdata.grantedAccess" type="pcre2">(?i)(0x1f1fff|0x1fffff|0x1f0fff|0x1410|0x1438|0x143a)</field>
+    <field name="win.eventdata.sourceImage" type="pcre2" negate="yes">(?i)(C:\\\\Program Files|wmiprvse\.exe|csrss\.exe|wininit\.exe|services\.exe|TrustedInstaller\.exe|SearchIndexer\.exe|MsMpEng\.exe|MsSense\.exe)</field>
+    <description>Lsass accessed by $(win.eventdata.sourceImage) with mask $(win.eventdata.grantedAccess) - modern credential dumping signature (procdump/Task Manager/comsvcs class)</description>
+    <mitre>
+      <id>T1003.001</id>
+    </mitre>
+    <group>credential_access,attack,T1003,T1003.001,lsass,</group>
+  </rule>
+
+</group>
