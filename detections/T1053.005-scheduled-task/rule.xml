@@ -1,0 +1,43 @@
+<!--
+  Wazuh custom rule: T1053.005 Scheduled Task / Job
+
+  Rule ID:    100203
+  Level:      14
+  MITRE:      T1053.005 (Scheduled Task), T1059 (Command and Scripting Interpreter)
+  Tactics:    Persistence, Execution, Privilege Escalation
+  Purpose:    Layer on Wazuh built-in 60228 (level 4, fires on every EID 4698) to escalate
+              alerts when the Task Content XML invokes suspicious script interpreters
+              or points to writable-path payloads. Built-in 60228 stays the catch-all
+              for benign task creations; this rule supersedes it (via Wazuh if_sid
+              hierarchy) when content matches the suspicious patterns below.
+  Dependency: Requires Windows audit subcategory "Other Object Access Events" to be
+              enabled on each endpoint - it is OFF by default on Win 11:
+
+                  auditpol /set /subcategory:"Other Object Access Events" /success:enable /failure:enable
+
+  Patterns matched (in win.system.message, which contains the Task Content XML):
+    - Writable-path payloads: \Temp\, \AppData\Local\Temp\, \Users\Public\, \Downloads\
+    - PowerShell evasion: -WindowStyle Hidden, -NoProfile, -NoNi, -ep bypass, -EncodedCommand
+    - LOLBin interpreters: mshta.exe, certutil -urlcache/-decode/-encode, rundll32 javascript:,
+      wscript.exe, cscript.exe, hh.exe (compiled help file abuse)
+
+  Notes:      The (?is) regex flags are essential. (?i) for case-insensitive matching,
+              and (?s) for DOTALL so that . matches across newlines - the Task Content
+              XML has \r\n between <Command> and <Arguments>, which would otherwise
+              break proximity matches like "powershell\.exe.{0,300}-windowstyle".
+-->
+
+<group name="local,sysmon,scheduled_task,">
+
+  <rule id="100203" level="14">
+    <if_sid>60228</if_sid>
+    <field name="win.system.message" type="pcre2">(?is)(\\\\Temp\\\\|\\\\AppData\\\\Local\\\\Temp\\\\|\\\\Users\\\\Public\\\\|\\\\Downloads\\\\|powershell\.exe.{0,300}(-windowstyle\s+hidden|-w\s+hidden|-nop\b|-noprofile|-noni\b|-ep\s+bypass|-enc(odedcommand)?)|mshta\.exe|certutil\.exe.{0,100}-(urlcache|decode|encode)|rundll32\.exe.{0,200}javascript|wscript\.exe|cscript\.exe|hh\.exe)</field>
+    <description>High-confidence: Scheduled task created invoking suspicious interpreter or pointing to suspicious path (T1053.005 + T1059)</description>
+    <mitre>
+      <id>T1053.005</id>
+      <id>T1059</id>
+    </mitre>
+    <group>persistence,execution,attack,T1053,T1053.005,T1059,scheduled_task,</group>
+  </rule>
+
+</group>

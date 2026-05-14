@@ -20,7 +20,7 @@ Every detection rule is written from scratch, mapped to MITRE ATT&CK, and verifi
 | T1003.001 | LSASS Memory Access | [Complete ✓](./detections/T1003.001-lsass-memory/) |
 | T1110 | Brute Force (Windows logon) | Planned |
 | T1547.001 | Registry Run Key Persistence | [Complete ✓](./detections/T1547.001-registry-run-key/) |
-| T1053.005 | Scheduled Task Creation | Planned |
+| T1053.005 | Scheduled Task Creation | [Complete ✓](./detections/T1053.005-scheduled-task/) |
 | T1021.002 | SMB/Admin Share Lateral Movement | Planned |
 
 ## Tooling
