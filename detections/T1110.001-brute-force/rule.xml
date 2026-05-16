@@ -1,0 +1,50 @@
+<!--
+  T1110.001 - Brute Force: Password Guessing (successful logon after pattern)
+  Author: Aakash | Date: 2026-05-16
+
+  Detection: a successful Windows logon (4624, authentication_success group)
+  from a source IP that also triggered Wazuh's built-in brute-force
+  correlation (rule 60204: >=8 auth failures in 240s), within a 5-minute
+  window. Catches the post-compromise stage - an attacker who guessed valid
+  credentials and is now using them. Fills the gap left by built-in 60204,
+  which only ever flags the failures, never the eventual success.
+
+  Composite rule design:
+    if_group authentication_success
+        -> trigger: any successful Windows logon. NOTE: anchored on the
+           GROUP, not if_sid 60106, because SMB/NTLM network logons climb a
+           4-rule chain (60106 -> 92651 -> 92652 -> 92657) and end on a rule
+           other than 60106. All rules in that chain share the
+           authentication_success group, so the group anchor is robust.
+    if_matched_sid 60204
+        -> precondition: the brute-force correlation must have fired.
+    same_field win.eventdata.ipAddress
+        -> the success must originate from the brute-forcing IP.
+    frequency 2 / timeframe 300
+        -> Wazuh forbids frequency=1 (minimum is 2). Requiring >=2 successful
+           logons is also higher-confidence: one success after failures may
+           be the real user; two+ sessions from a brute-forcing IP is
+           unambiguous compromise.
+
+  Filters:
+    - Excludes service / loopback source IPs ("-", ::1, 127.0.0.1)
+    - Excludes machine accounts (trailing $) and system principals
+      (SYSTEM, LOCAL SERVICE, NETWORK SERVICE, ANONYMOUS LOGON, DWM-*, UMFD-*)
+
+  MITRE: T1110.001 (Password Guessing) + T1078 (Valid Accounts).
+  Place inside the <group name="local,syslog,sshd,"> block of local_rules.xml.
+-->
+<rule id="100204" level="14" frequency="2" timeframe="300">
+  <if_group>authentication_success</if_group>
+  <if_matched_sid>60204</if_matched_sid>
+  <same_field>win.eventdata.ipAddress</same_field>
+  <field name="win.eventdata.ipAddress" type="pcre2" negate="yes">^-$|^::1$|^127\.0\.0\.1$</field>
+  <field name="win.eventdata.targetUserName" type="pcre2" negate="yes">\$$|^SYSTEM$|^LOCAL SERVICE$|^NETWORK SERVICE$|^ANONYMOUS LOGON$|^DWM-|^UMFD-</field>
+  <description>Successful Windows logon for $(win.eventdata.targetUserName) from $(win.eventdata.ipAddress) after multiple authentication failures - potential brute force success / credential compromise</description>
+  <options>no_full_log</options>
+  <mitre>
+    <id>T1110.001</id>
+    <id>T1078</id>
+  </mitre>
+  <group>authentication_success,attack,T1110,T1110.001,T1078,brute_force,credential_compromise,</group>
+</rule>
