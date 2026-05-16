@@ -1,0 +1,41 @@
+<!--
+  T1021.002 - Remote Services: SMB / Windows Admin Shares (psexec / smbexec)
+  Author: Aakash | Date: 2026-05-16
+
+  Child of built-in rule 61138 (event 7045 - "New Windows Service Created").
+  61138 is level 5 with no content filter - it fires identically for a
+  Windows Update component and for an Impacket psexec.py backdoor. This rule
+  adds an imagePath signature and escalates to level 14.
+
+  imagePath signatures matched:
+    - cmd.exe / %comspec% / powershell : the service binary IS a command
+      interpreter -> smbexec.py registers exactly this kind of service.
+    - \Temp\, \PerfLogs\, \Users\Public\, \Downloads\ : service binary in a
+      writable / non-standard location.
+    - \Windows\<file>.exe or %systemroot%\<file>.exe : a bare executable
+      directly in the Windows root -> psexec.py drops its service binary
+      here via the ADMIN$ share. The [^\\]+ cannot cross a path separator,
+      so legit C:\Windows\System32\... service binaries do NOT match.
+
+  Backslashes are written \\\\ because Windows eventdata path values reach
+  the rule engine with doubled separators (consistent with rules 100201-203).
+
+  Verified: Impacket psexec.py created service "zIqO" with imagePath
+  "%systemroot%\kGeNDLMz.exe" -> rule fired at level 14 on the first test.
+
+  MITRE: T1021.002 (SMB/Admin Shares) + T1543.003 (Windows Service) +
+  T1569.002 (Service Execution).
+  Place inside the <group name="local,syslog,sshd,"> block of local_rules.xml.
+-->
+<rule id="100205" level="14">
+  <if_sid>61138</if_sid>
+  <field name="win.eventdata.imagePath" type="pcre2">(?i)(cmd\.exe|%comspec%|powershell|\\\\Temp\\\\|\\\\PerfLogs\\\\|\\\\Users\\\\Public\\\\|\\\\Downloads\\\\|\\\\Windows\\\\[^\\]+\.exe|%systemroot%\\\\[^\\]+\.exe)</field>
+  <description>High-confidence: Suspicious Windows service installed ($(win.eventdata.serviceName)) - binary is a command interpreter or sits in a non-standard path (psexec/smbexec lateral movement signature)</description>
+  <options>no_full_log</options>
+  <mitre>
+    <id>T1021.002</id>
+    <id>T1543.003</id>
+    <id>T1569.002</id>
+  </mitre>
+  <group>lateral_movement,execution,attack,T1021,T1021.002,T1543.003,T1569.002,psexec,service,</group>
+</rule>
