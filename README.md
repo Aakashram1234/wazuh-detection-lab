@@ -21,7 +21,7 @@ Every detection rule is written from scratch, mapped to MITRE ATT&CK, and verifi
 | T1110.001 | Brute Force (Windows logon) | [Complete ✓](./detections/T1110.001-brute-force/) |
 | T1547.001 | Registry Run Key Persistence | [Complete ✓](./detections/T1547.001-registry-run-key/) |
 | T1053.005 | Scheduled Task Creation | [Complete ✓](./detections/T1053.005-scheduled-task/) |
-| T1021.002 | SMB/Admin Share Lateral Movement | Planned |
+| T1021.002 | SMB/Admin Share Lateral Movement | [Complete ✓](./detections/T1021.002-smb-lateral-movement/) |
 
 ## Tooling
 
