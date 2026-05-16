@@ -18,7 +18,7 @@ Every detection rule is written from scratch, mapped to MITRE ATT&CK, and verifi
 |---|---|---|
 | T1059.001 | PowerShell Encoded Command | [Complete ✓](./detections/T1059.001-powershell-encoded/) |
 | T1003.001 | LSASS Memory Access | [Complete ✓](./detections/T1003.001-lsass-memory/) |
-| T1110 | Brute Force (Windows logon) | Planned |
+| T1110.001 | Brute Force (Windows logon) | [Complete ✓](./detections/T1110.001-brute-force/) |
 | T1547.001 | Registry Run Key Persistence | [Complete ✓](./detections/T1547.001-registry-run-key/) |
 | T1053.005 | Scheduled Task Creation | [Complete ✓](./detections/T1053.005-scheduled-task/) |
 | T1021.002 | SMB/Admin Share Lateral Movement | Planned |
