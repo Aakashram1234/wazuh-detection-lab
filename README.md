@@ -48,6 +48,19 @@ Each detection folder documents all four steps in full — including the dead en
 | [T1110.001](./detections/T1110.001-brute-force/) | Brute Force — Password Guessing | Credential Access | 100204 | Complete ✓ |
 | [T1021.002](./detections/T1021.002-smb-lateral-movement/) | SMB / Admin Share Lateral Movement | Lateral Movement | 100205 | Complete ✓ |
 
+## Incident Response Case Study
+
+The six detections above are not isolated rules — chained together, they cover a
+complete attack kill chain. [**IR-2026-001**](./incident-response/IR-2026-001/)
+is a full incident-response writeup of a simulated multi-stage intrusion run
+against the lab: SMB brute force, encoded-PowerShell execution, registry and
+scheduled-task persistence, LSASS credential theft, and psexec lateral movement.
+
+All five stages were detected. The case study reconstructs the incident from the
+Wazuh alerts — timeline, attack narrative, per-stage detection analysis,
+consolidated IOCs, and containment / eradication / hardening recommendations —
+the way a SOC analyst would handle a real incident.
+
 ## Repository layout
 
 Each detection lives in `detections/<ATT&CK-ID>-<name>/`:
